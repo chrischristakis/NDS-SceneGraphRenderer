@@ -1,0 +1,9 @@
+# VS stuff
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.*
+
+# Libnds stuff
+*.elf
+build/
