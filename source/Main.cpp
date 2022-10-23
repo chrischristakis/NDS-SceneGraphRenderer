@@ -1,6 +1,7 @@
 #include <nds.h>
 #include <stdio.h>
 #include "ADT/Mesh.h"
+#include "ADT/MeshObject.h"
 #include "Constants.h"
 
 void init() {
@@ -18,7 +19,8 @@ void init() {
 int main() {
 	init();
 
-	Mesh m{ Constants::CUBE_VERTS, sizeof(Constants::CUBE_VERTS) / sizeof(float), GL_QUAD };
+	Mesh *m = new Mesh{ Constants::QUAD_VERTS, sizeof(Constants::QUAD_VERTS) / sizeof(float), GL_QUAD };
+	MeshObject mo{ m, 0.0f, 0.0f, 0.0f};
 
 	int angle = 0;
 	while (1) {
@@ -30,13 +32,10 @@ int main() {
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		glTranslatef(0, 0, -3.0f);
-		glRotatef(angle++, 0, 1.0f, 0);
+		glRotatef(angle++, 0, 1.0f, 0.0f);
 
-		glBegin(m.draw_mode);
-			glColor3f(1.0f, 0.0f, 0.0f);
-			for (size_t i = 0; i < m.vertices.size(); i+=3)
-				glVertex3f(m.vertices[i], m.vertices[i+1], m.vertices[i+2]);
-		glEnd();
+		mo.setColor(angle, angle, angle);
+		mo.render();
 
 		glFlush(0);
 		swiWaitForVBlank();

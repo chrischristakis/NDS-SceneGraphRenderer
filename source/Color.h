@@ -1,0 +1,14 @@
+#ifndef COLOR_H
+#define COLOR_H
+
+struct Color3f {
+	float r, g, b;
+	Color3f(float r, float g, float b): r(r), g(g), b(b) {}
+};
+
+struct Color3b {
+	int r, g, b;
+	Color3b(int r, int g, int b) : r(r), g(g), b(b) {}
+};
+
+#endif
