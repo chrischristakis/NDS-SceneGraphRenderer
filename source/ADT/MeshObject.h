@@ -3,11 +3,10 @@
 #include "Object.h"
 #include "../Color.h"
 
-class MeshObject : public Object {
-	Color3b *color;
-public:
+struct MeshObject : public Object {
+	Color3b color;
+
 	MeshObject(Mesh* mesh, float x, float y, float z);
-	~MeshObject();
 
 	void setColor(int r, int g, int b);
 	void render();
