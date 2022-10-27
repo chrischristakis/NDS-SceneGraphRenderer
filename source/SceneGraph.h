@@ -1,15 +1,17 @@
 #ifndef SCENEGRAPH_H
 #define SCENEGRAPH_H
 #include <stdio.h>
+#include "ADT/Object.h"
 
 namespace SceneGraph {
+	extern Object* root;
+
 	void init();
 
 	void render();
-	void update();
 
-	void addObject(/*object*/);
-	void removeObject(/*object*/);
+	void addObject(Object* object);
+	void removeObject(Object* object);
 	void transformObject(/*transform*/);
 }
 
