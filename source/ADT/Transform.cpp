@@ -13,6 +13,12 @@ void Transform::setTranslate(float x, float y, float z) {
 	translate.z = z;
 }
 
+void Transform::deltaTranslate(float dx, float dy, float dz) {
+	translate.x += dx;
+	translate.y += dy;
+	translate.z += dz;
+}
+
 void Transform::setScale(float x, float y, float z) {
 	scale.x = x;
 	scale.y = y;

@@ -1,5 +1,7 @@
 #include "Object.h"
 #include <stdio.h>
+#include <nds/arm9/videoGL.h>
+#include <nds/arm9/boxtest.h>
 
 static int counter = 0;  // ID tracking
 
@@ -7,6 +9,11 @@ Object::Object(float x, float y, float z) {
 	ID = counter++;
 	transform.setTranslate(x, y, z);
 	parent = nullptr;
+}
+
+Object::Object(std::string name, float x, float y, float z) {
+	Object(x, y, z);
+	this->name = name;
 }
 
 Object::~Object() {
@@ -37,6 +44,8 @@ void Object::updateMV() {
 
 	// We don't scale based off the parent, only input positional and rotational data
 	glScalef(transform.scale.x, transform.scale.y, transform.scale.z);
+
+	bounded = mesh->box->bounded();
 }
 
 void Object::addChild(Object* object) {
@@ -48,9 +57,15 @@ void Object::addMesh(Mesh* mesh) {
 	this->mesh = mesh;
 }
 
+void Object::updateAndRender() {
+	updateMV();
+	printf("\n[\"%s\", ID:% d] %s", name.c_str(), ID, bounded ? "rendered" : "unrendered");
+	if(bounded)   // If the object is off our screen, we don't need to render it.
+		render();
+}
+
 void Object::renderSelfAndChildren() {
-	printf("\nID: %d", ID);
-	render();
+	updateAndRender();
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->renderSelfAndChildren();
 }

@@ -15,6 +15,7 @@ struct Transform {
 
 	void setScale(float x, float y, float z);
 	void setTranslate(float x, float y, float z);
+	void deltaTranslate(float dx, float dy, float dz);
 	void setAngle(float angle, float x, float y, float z);
 };
 

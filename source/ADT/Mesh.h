@@ -2,13 +2,18 @@
 #define MESH_H
 #include <vector>
 #include <nds/arm9/videoGL.h>
+#include "Box.h"
 
 // A mesh simply stores vertices and how to draw them.
 struct Mesh {
 	std::vector<float> vertices;
+	Box* box;
 	GL_GLBEGIN_ENUM draw_mode;
 
-	Mesh(const float arr[], size_t N, GL_GLBEGIN_ENUM draw_mode);
+	Mesh(float x, float y, float z, float width, float height, float depth,
+		const float arr[], size_t N, GL_GLBEGIN_ENUM draw_mode);
+
+	~Mesh();
 
 	//! Vertices should be in the form of [x, y, z, x, y, z, ... ]
 	void setVertices(const float arr[], size_t N);

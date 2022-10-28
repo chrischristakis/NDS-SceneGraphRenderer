@@ -2,9 +2,16 @@
 #include <nds/arm9/videoGL.h>
 #include <assert.h>
 
-Mesh::Mesh(const float arr[], size_t N, GL_GLBEGIN_ENUM draw_mode) {
+Mesh::Mesh(float x, float y, float z, float width, float height, float depth,
+	const float arr[], size_t N, GL_GLBEGIN_ENUM draw_mode) {
 	setVertices(arr, N);
 	this->draw_mode = draw_mode;
+
+	box = new Box(x, y, z, width, height, depth);
+}
+
+Mesh::~Mesh() {
+	delete box;
 }
 
 void Mesh::setVertices(const float arr[], size_t N) {

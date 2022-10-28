@@ -1,6 +1,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 #include <vector>
+#include <string>
 #include "Mesh.h"
 #include "Transform.h"
 
@@ -11,8 +12,11 @@ struct Object {
 	Object* parent;
 	std::vector<Object*> children;
 	int ID;
+	int bounded;  // Used for simple bounded clipping using BoxTest 
+	std::string name;
 
 	Object(float x, float y, float z);
+	Object(std::string name, float x, float y, float z);
 	virtual ~Object();
 
 	void updateMV();
@@ -20,6 +24,7 @@ struct Object {
 	void removeChild(Object* object);
 	void addMesh(Mesh* mesh);
 	virtual void render() {};
+	void updateAndRender();
 	void renderSelfAndChildren();
 };
 
