@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <nds/arm9/videoGL.h>
 #include <nds/arm9/boxtest.h>
+#include <stack>
 
 static int counter = 0;  // ID tracking
+int Object::poly_counter = 0;
 
 Object::Object(float x, float y, float z) {
 	ID = counter++;
@@ -25,18 +27,30 @@ Object::~Object() {
 
 // Used to update the MODELVIEW matrix, relative to the parent's transform
 void Object::updateMV() {
-	Transform parentTransform;  // Use identity transform if no parent exists (no effect)
-	
-	if (parent != nullptr)
-		parentTransform = parent->transform;  // If we have a parent, use it's transform as our global position!
-
 	// Load up the MODELVIEW matrix to alter.
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	// First, apply parent transform.
-	glTranslatef(parentTransform.translate.x, parentTransform.translate.y, parentTransform.translate.z);
-	glRotatef(parentTransform.angle, parentTransform.angleAxis.x, parentTransform.angleAxis.y, parentTransform.angleAxis.z);
+	// First, apply all parent transforms.
+	// We do this by starting with the HIGHEST parent's transform then work our way down, hence the stack.
+	// Otherwise, we'd start with our parent's transform, then grandparents, this isn't correct. We start with grandparents then parents.
+	std::stack<Object*> parents;
+	Object *currPar = parent;
+	while (currPar != nullptr) {
+		parents.push(currPar);
+		currPar = currPar->parent;
+	}
+	
+	// Now that our stack is full, lets work our way down the transforms.
+	while (!parents.empty()) {
+		currPar = parents.top();
+		parents.pop();
+		
+		printf("\n[%f, %f, %f]", currPar->transform.translate.x, currPar->transform.translate.y, currPar->transform.translate.z);
+		glTranslatef(currPar->transform.translate.x, currPar->transform.translate.y, currPar->transform.translate.z);
+		glRotatef(currPar->transform.angle, currPar->transform.angleAxis.x, currPar->transform.angleAxis.y, currPar->transform.angleAxis.z);
+		currPar = currPar->parent;
+	}
 
 	// Now that our global position is that of our parent's time to use our relative transforms.
 	glTranslatef(transform.translate.x, transform.translate.y, transform.translate.z);
@@ -60,8 +74,12 @@ void Object::addMesh(Mesh* mesh) {
 void Object::updateAndRender() {
 	updateMV();
 	printf("\n[\"%s\", ID:% d] %s", name.c_str(), ID, bounded ? "rendered" : "unrendered");
-	if(bounded)   // If the object is off our screen, we don't need to render it.
+
+	// If the object is off our screen or breaches the maximum amt of polygons, we don't need to render it (Graceful)
+	if (bounded && poly_counter + mesh->polys <= MAX_POLYS) {
+		poly_counter += mesh->polys;
 		render();
+	}
 }
 
 void Object::renderSelfAndChildren() {

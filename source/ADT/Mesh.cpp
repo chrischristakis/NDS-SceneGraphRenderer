@@ -3,9 +3,19 @@
 #include <assert.h>
 
 Mesh::Mesh(float x, float y, float z, float width, float height, float depth,
-	const float arr[], size_t N, GL_GLBEGIN_ENUM draw_mode) {
+	const float arr[], size_t N, DrawMode draw_mode) {
 	setVertices(arr, N);
-	this->draw_mode = draw_mode;
+
+	switch (draw_mode) {
+		case DrawMode::TRIANGLES:
+			this->draw_mode = GL_TRIANGLES;
+			polys = N / (3 * 3);  // 3 points per vert, 3 verts per polygon.
+			break;
+		case DrawMode::QUAD:
+			this->draw_mode = GL_QUAD;
+			polys = N / (3 * 4);  // 3 points per vert, 4 verts per polygon.
+			break;
+	}
 
 	box = new Box(x, y, z, width, height, depth);
 }

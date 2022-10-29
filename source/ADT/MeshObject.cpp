@@ -1,6 +1,5 @@
 #include "MeshObject.h"
 #include <vector>
-#include "Transform.h"
 #include <stdio.h>
 
 MeshObject::MeshObject(Mesh* mesh, float x, float y, float z): Object(x,y,z) {

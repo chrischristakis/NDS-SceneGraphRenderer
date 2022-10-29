@@ -1,22 +1,31 @@
 #include <nds.h>
 #include <stdio.h>
+#include "ADT/Object.h"
 #include "ADT/Mesh.h"
 #include "ADT/MeshObject.h"
-#include "Constants.h"
+#include "ADT/ColoredObject.h"
+#include "ADT/TexturedObject.h"
 #include "ADT/Transform.h"
+#include "Constants.h"
+
+#include "SO_SUS_pcx.h"
 
 Object* root;
-MeshObject* mo;
-MeshObject* mo1;
-Mesh *m;
+ColoredObject* cube;
+TexturedObject* quad;
+MeshObject* plane;
+Mesh *cube_mesh;
+Mesh *quad_mesh;
 
 void init() {
 	consoleDemoInit();
 	videoSetMode(MODE_0_3D);  // Main engine to use MODE 0 since we only need 1 3D background.
+	vramSetBankA(VRAM_A_TEXTURE);
 	
 	glInit();  // Context time
 	glClearColor(0, 2, 3, 31);
 	glViewport(0, 0, 255, 191);
+	glEnable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);	// We're about to establish our projection matrix.
 	glLoadIdentity();	// Load in an identity matrix so we have a fresh slate.
@@ -27,18 +36,26 @@ void init() {
 void initScene() {
 	root = new Object("root", 0, 0, 0);  // The origin of our world.
 
-	m = new Mesh{ -0.5f, -0.5f, -0.5f, 1, 1, 1,
-		Constants::CUBE_VERTS, sizeof(Constants::CUBE_VERTS) / sizeof(float), GL_QUAD };
+	cube_mesh = new Mesh{ -0.5f, -0.5f, -0.5f, 1, 1, 1,
+		Constants::CUBE_VERTS, sizeof(Constants::CUBE_VERTS) / sizeof(float), DrawMode::QUAD };
 
-	mo = new MeshObject{"Moon", m, 0.0f, 0.0f, 0.0f};
-	mo1 = new MeshObject(m, 0.0f, 0.0f, -3.5f);
+	quad_mesh = new Mesh{ -0.5, -0.5, 0.0f, 1, 1, 0, 
+		Constants::QUAD_VERTS, sizeof(Constants::QUAD_VERTS) / sizeof(float), DrawMode::QUAD };
 
-	mo1->addChild(mo);
-	root->addChild(mo1);
+	cube = new ColoredObject{"Planet", cube_mesh, Constants::CUBE_COLORS, sizeof(Constants::CUBE_COLORS)/sizeof(byte),
+		0.0f, 0.0f, 0.0f};
+	quad = new TexturedObject("AMONGUS", quad_mesh, SO_SUS_pcx, TEXTURE_SIZE_128, Constants::AMONG_US_QUAD_UV,
+		sizeof(Constants::AMONG_US_QUAD_UV) / sizeof(float),
+		0.0f, 0.0f, 0.0f);
+	plane = new MeshObject{ "Plane", quad_mesh, 0, -3.5f, 0 };
 
-	mo->transform.setScale(0.5f, 0.5f, 0.5f);
-	mo->setColor(50, 50, 50);
-	mo1->setColor(7, 55, 255);
+	plane->transform.setAngle(90, 1.0f, 0.0f, 0.0f);
+	plane->transform.setScale(10.0f, 10.0f, 0);
+
+	cube->addChild(quad);
+
+	root->addChild(cube);
+	root->addChild(plane);
 }
 
 int main() {
@@ -47,9 +64,15 @@ int main() {
 	
 	int angle = 0;
 	s16 x = 0, y = 0;
-	float px = 0, pz = -3.5f;
+	
+	struct CamPos {
+		float x = 0;
+		float y = 0;
+		float z = -3.5f;
+	} pos;
 
 	while (1) {
+		Object::poly_counter = 0;  // Reset out current polygon count each tick.
 
 		printf("\033[2J");
 		printf("\n\nChris' 3D Scene graph renderer");
@@ -57,27 +80,38 @@ int main() {
 		scanKeys();
 		int keys = keysHeld();
 		if (keys & KEY_LEFT)
-			px += 0.05f;
+			pos.x += 0.05f;
 		if (keys & KEY_RIGHT)
-			px -= 0.05f;
+			pos.x -= 0.05f;
 		if (keys & KEY_UP)
-			pz += 0.05f;
+			pos.z += 0.05f;
 		if (keys & KEY_DOWN)
-			pz -= 0.05f;
+			pos.z -= 0.05f;
 		if (keys & KEY_A)
-			root->removeChild(mo);
+			pos.y += 0.05f;
+		if (keys & KEY_B)
+			pos.y -= 0.05f;
+		if (keys & KEY_START)
+			root->removeChild(quad);
 		
 		// Orbiting moon
 		x = 1.5 * cosLerp(angle*300 % 32767);
 		y = 1.5 * sinLerp(angle*300 % 32767);
 
-		if(mo)
-			mo->transform.setTranslate(fixedToFloat(x, 12), fixedToFloat(y, 12), 0);
+		// Independent transforms
+		if(quad)
+			quad->transform.setTranslate(fixedToFloat(x, 12), fixedToFloat(y, 12), 0);
 
-		mo1->transform.setAngle(angle++, 1.0f, 1.0f, 0.0f);
-		mo1->transform.setTranslate(px, mo1->transform.translate.y, pz);
+		cube->transform.setAngle(angle++, 0.0f, 1.0f, 0.0f);
 
+		//Camera transform
+		root->transform.setTranslate(pos.x, pos.y, pos.z);
+
+		// Render scene
 		root->renderSelfAndChildren();
+
+		printf("\n\nMax polygons: %d", Object::MAX_POLYS);
+		printf("\nRendered polygons: %d", Object::poly_counter);
 
 		glFlush(0);
 		swiWaitForVBlank();

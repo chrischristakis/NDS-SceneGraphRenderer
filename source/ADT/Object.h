@@ -15,6 +15,9 @@ struct Object {
 	int bounded;  // Used for simple bounded clipping using BoxTest 
 	std::string name;
 
+	static const int MAX_POLYS = 4000;
+	static int poly_counter;
+
 	Object(float x, float y, float z);
 	Object(std::string name, float x, float y, float z);
 	virtual ~Object();
