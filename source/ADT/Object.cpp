@@ -25,43 +25,6 @@ Object::~Object() {
 	children.clear();
 }
 
-// Used to update the MODELVIEW matrix, relative to the parent's transform
-void Object::updateMV() {
-	// Load up the MODELVIEW matrix to alter.
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	// First, apply all parent transforms.
-	// We do this by starting with the HIGHEST parent's transform then work our way down, hence the stack.
-	// Otherwise, we'd start with our parent's transform, then grandparents, this isn't correct. We start with grandparents then parents.
-	std::stack<Object*> parents;
-	Object *currPar = parent;
-	while (currPar != nullptr) {
-		parents.push(currPar);
-		currPar = currPar->parent;
-	}
-	
-	// Now that our stack is full, lets work our way down the transforms.
-	while (!parents.empty()) {
-		currPar = parents.top();
-		parents.pop();
-		
-		printf("\n[%f, %f, %f]", currPar->transform.translate.x, currPar->transform.translate.y, currPar->transform.translate.z);
-		glTranslatef(currPar->transform.translate.x, currPar->transform.translate.y, currPar->transform.translate.z);
-		glRotatef(currPar->transform.angle, currPar->transform.angleAxis.x, currPar->transform.angleAxis.y, currPar->transform.angleAxis.z);
-		currPar = currPar->parent;
-	}
-
-	// Now that our global position is that of our parent's time to use our relative transforms.
-	glTranslatef(transform.translate.x, transform.translate.y, transform.translate.z);
-	glRotatef(transform.angle, transform.angleAxis.x, transform.angleAxis.y, transform.angleAxis.z);
-
-	// We don't scale based off the parent, only input positional and rotational data
-	glScalef(transform.scale.x, transform.scale.y, transform.scale.z);
-
-	bounded = mesh->box->bounded();
-}
-
 void Object::addChild(Object* object) {
 	object->parent = this;
 	children.push_back(object);
@@ -72,20 +35,30 @@ void Object::addMesh(Mesh* mesh) {
 }
 
 void Object::updateAndRender() {
-	updateMV();
-	printf("\n[\"%s\", ID:% d] %s", name.c_str(), ID, bounded ? "rendered" : "unrendered");
+	// Load up the MODELVIEW matrix to alter.
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
 
-	// If the object is off our screen or breaches the maximum amt of polygons, we don't need to render it (Graceful)
-	if (bounded && poly_counter + mesh->polys <= MAX_POLYS) {
+	// Apply the current transforms that will be applied to children (Scale doesnt apply to children)
+	glTranslatef(transform.translate.x, transform.translate.y, transform.translate.z);
+	glRotatef(transform.angle, transform.angleAxis.x, transform.angleAxis.y, transform.angleAxis.z);
+
+	// Loop through children and render them, building on the parent transforms.
+	for (size_t i = 0; i < children.size(); i++)
+		children[i]->updateAndRender();
+
+	// We don't want to scale our children, that's why this is down here.
+	glScalef(transform.scale.x, transform.scale.y, transform.scale.z);
+
+	//Some bounding box testing to clip  polygons offscreen.
+	bounded = mesh->box->bounded();
+	printf("\n[\"%s\", ID:% d] %s", name.c_str(), ID, bounded ? "rendered" : "unrendered");
+	if (bounded && poly_counter + mesh->polys <= MAX_POLYS) {  // Only draw if bounded, and we have polygons to spare.
 		poly_counter += mesh->polys;
 		render();
 	}
-}
 
-void Object::renderSelfAndChildren() {
-	updateAndRender();
-	for (size_t i = 0; i < children.size(); i++)
-		children[i]->renderSelfAndChildren();
+	glPopMatrix(1); // Once we've rendered our object, we can dispose of our current matrix and move uo the hiearchy
 }
 
 // DFS through children to remove an object.

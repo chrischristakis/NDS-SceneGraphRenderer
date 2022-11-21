@@ -75,7 +75,7 @@ int main() {
 		Object::poly_counter = 0;  // Reset out current polygon count each tick.
 
 		printf("\033[2J");
-		printf("\n\nChris' 3D Scene graph renderer");
+		printf("\n\nChris' 3D Renderer");
 
 		scanKeys();
 		int keys = keysHeld();
@@ -108,7 +108,7 @@ int main() {
 		root->transform.setTranslate(pos.x, pos.y, pos.z);
 
 		// Render scene
-		root->renderSelfAndChildren();
+		root->updateAndRender();
 
 		printf("\n\nMax polygons: %d", Object::MAX_POLYS);
 		printf("\nRendered polygons: %d", Object::poly_counter);
