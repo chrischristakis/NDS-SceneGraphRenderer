@@ -7,6 +7,7 @@
 #include "ADT/TexturedObject.h"
 #include "ADT/Transform.h"
 #include "Constants.h"
+#include "Input/Input.h"
 
 #include "SO_SUS_pcx.h"
 
@@ -30,6 +31,8 @@ void init() {
 	glMatrixMode(GL_PROJECTION);	// We're about to establish our projection matrix.
 	glLoadIdentity();	// Load in an identity matrix so we have a fresh slate.
 	gluPerspective(90, 256.0 / 192.0, 0.1, 40);	// Our perspective projection, using an aspect ratio of our screen size
+
+	Input::init();
 }
 
 // Our scenegraph goes here.
@@ -78,20 +81,19 @@ int main() {
 		printf("\n\nChris' 3D Renderer");
 
 		scanKeys();
-		int keys = keysHeld();
-		if (keys & KEY_LEFT)
+		if (Input::getButton("left"))
 			pos.x += 0.05f;
-		if (keys & KEY_RIGHT)
+		if (Input::getButton("right"))
 			pos.x -= 0.05f;
-		if (keys & KEY_UP)
+		if (Input::getButton("up"))
 			pos.z += 0.05f;
-		if (keys & KEY_DOWN)
+		if (Input::getButton("down"))
 			pos.z -= 0.05f;
-		if (keys & KEY_A)
+		if (Input::getButton("fire"))
 			pos.y += 0.05f;
-		if (keys & KEY_B)
+		if (Input::getButton("jump"))
 			pos.y -= 0.05f;
-		if (keys & KEY_START)
+		if (Input::getButton("start"))
 			root->removeChild(quad);
 		
 		// Orbiting moon
@@ -112,6 +114,7 @@ int main() {
 
 		printf("\n\nMax polygons: %d", Object::MAX_POLYS);
 		printf("\nRendered polygons: %d", Object::poly_counter);
+		printf("\nFire: %d", Input::getButton("fire"));
 
 		glFlush(0);
 		swiWaitForVBlank();
