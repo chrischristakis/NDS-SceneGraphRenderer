@@ -21,7 +21,7 @@ include $(DEVKITARM)/ds_rules
 #---------------------------------------------------------------------------------
 TARGET   := $(shell basename $(CURDIR))
 BUILD    := build
-SOURCES  := source source/ADT source/Input
+SOURCES  := source source/ADT source/Input source/Components
 INCLUDES := include
 DATA     := data
 GRAPHICS :=
@@ -39,7 +39,7 @@ ARCH := -marm -mthumb-interwork -march=armv5te -mtune=arm946e-s
 
 CFLAGS   := -g -Wall -O3\
             $(ARCH) $(INCLUDE) -DARM9
-CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions
+CXXFLAGS := $(CFLAGS) -fno-exceptions
 ASFLAGS  := -g $(ARCH)
 LDFLAGS   = -specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 

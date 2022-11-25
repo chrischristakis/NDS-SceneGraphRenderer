@@ -18,7 +18,7 @@ bool Input::getButton(std::string buttonName) {
 	return keys & keyMapping[buttonName];
 }
 
-// Since we don't have a UI, if you want to assign "jump" to B, use this.
+// If you want to assign "jump" to B instead of A, use this.
 void Input::assignButton(std::string buttonName, KEYPAD_BITS newButton) {
 	// Just end it if the virtual input doesn't exist.
 	if (keyMapping.find(buttonName) == keyMapping.end())

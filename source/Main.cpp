@@ -9,7 +9,9 @@
 #include "Constants.h"
 #include "Input/Input.h"
 
-#include "SO_SUS_pcx.h"
+#include "texture_pcx.h"
+#include "ADT/GameObject.h"
+#include "Components/Color.h"
 
 Object* root;
 ColoredObject* cube;
@@ -17,6 +19,8 @@ TexturedObject* quad;
 MeshObject* plane;
 Mesh *cube_mesh;
 Mesh *quad_mesh;
+
+GameObject *test;
 
 void init() {
 	consoleDemoInit();
@@ -47,7 +51,7 @@ void initScene() {
 
 	cube = new ColoredObject{"Planet", cube_mesh, Constants::CUBE_COLORS, sizeof(Constants::CUBE_COLORS)/sizeof(byte),
 		0.0f, 0.0f, 0.0f};
-	quad = new TexturedObject("AMONGUS", quad_mesh, SO_SUS_pcx, TEXTURE_SIZE_128, Constants::AMONG_US_QUAD_UV,
+	quad = new TexturedObject("AMONGUS", quad_mesh, texture_pcx, TEXTURE_SIZE_128, Constants::AMONG_US_QUAD_UV,
 		sizeof(Constants::AMONG_US_QUAD_UV) / sizeof(float),
 		0.0f, 0.0f, 0.0f);
 	plane = new MeshObject{ "Plane", quad_mesh, 0, -3.5f, 0 };
@@ -59,6 +63,9 @@ void initScene() {
 
 	root->addChild(cube);
 	root->addChild(plane);
+
+	test = new GameObject();
+	test->addComponent<Color>(10, 10, 10);
 }
 
 int main() {
@@ -114,7 +121,8 @@ int main() {
 
 		printf("\n\nMax polygons: %d", Object::MAX_POLYS);
 		printf("\nRendered polygons: %d", Object::poly_counter);
-		printf("\nFire: %d", Input::getButton("fire"));
+		Color* componentCol = test->getComponent<Color>();
+		printf("\nTest component: %d %d %d", componentCol->r++, componentCol->g, componentCol->b);
 
 		glFlush(0);
 		swiWaitForVBlank();
