@@ -3,10 +3,23 @@
 #include <nds/arm9/videoGL.h>
 
 namespace Constants {
+
+	const int MAX_POLYGONS = 4000;
+
 	const float TRIANGLE_VERTS[] = {
 		-0.5f, -0.5f,  0.0f,
 		 0.5f, -0.5f,  0.0f,
 		 0.0f,  0.5f,  0.0f
+	};
+
+	const float TRIANGLE_QUAD_VERTS[] = {
+		-1.0f, -1.0f,  0.0f,
+		 1.0f, -1.0f,  0.0f,
+		 1.0f,  1.0f,  0.0f,
+
+		 1.0f,  1.0f,  0.0f,
+		-1.0f,  1.0f,  0.0f,
+		-1.0f, -1.0f,  0.0f,
 	};
 
 	const float QUAD_VERTS[] = {

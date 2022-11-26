@@ -3,15 +3,33 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <vector>
 #include <typeinfo>
+#include "Transform.h"
 #include "../Components/Component.h"
 
 class GameObject {
+private:
+	std::map<std::string, Component*> components;  //An internal DS, no need to expose it.
 public: 
-	
-	GameObject() = default;
 
-	std::map<std::string, Component*> components;
+	int ID;  // A unique ID for our GameObject.
+	std::string name; // Non-unique identifier. Mostly for debugging.
+	std::vector<GameObject*> children;
+	GameObject* parent;
+	Transform transform;
+
+	static int poly_counter; // Used to count how many polygons are currently drawn in this vblank.
+
+	GameObject(std::string name, float x, float y, float z);
+	GameObject(float x, float y, float z);
+	~GameObject();
+
+	void addChild(GameObject* obj);
+
+	void updateMV();
+
+	//! We must implement templates in our .h, c++ doesn't let us put these definition in the cpp file.
 
 	// Add a component (Note: You can only have one of each type of component in a GameObject)
 	template<typename T, typename ...TArgs>
