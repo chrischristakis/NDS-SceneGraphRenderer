@@ -22,6 +22,26 @@ namespace Constants {
 		-1.0f, -1.0f,  0.0f,
 	};
 
+	const uint8_t TRIANGLE_QUAD_COLORS[] = {
+		255, 0, 0,
+		0, 255, 0,
+		0, 0, 255,
+
+		0, 0, 255,
+		0, 255, 0,
+		255, 0, 0,
+	};
+
+	const float TRIANGLE_QUAD_UVS[] = {
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f
+	};
+
 	const float QUAD_VERTS[] = {
 		-0.5f, -0.5f,  0.0f, //bl
 		 0.5f, -0.5f,  0.0f, //br

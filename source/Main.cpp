@@ -1,18 +1,14 @@
 #include <nds.h>
 #include <stdio.h>
-#include "ADT/Object.h"
-#include "ADT/Mesh.h"
-#include "ADT/MeshObject.h"
-#include "ADT/ColoredObject.h"
-#include "ADT/TexturedObject.h"
-#include "ADT/Transform.h"
 #include "Constants.h"
 #include "Input/Input.h"
 
-#include "texture_pcx.h"
+#include "SO_SUS_pcx.h"
 #include "ADT/GameObject.h"
 #include "Components/MeshComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/ColorComponent.h"
+#include "Components/TextureComponent.h"
 
 GameObject *root;
 GameObject *earth;
@@ -44,16 +40,18 @@ void initScene() {
 	earth->addComponent<MeshComponent>(Constants::TRIANGLE_QUAD_VERTS,
 		sizeof(Constants::TRIANGLE_QUAD_VERTS)/sizeof(float));
 	earth->addComponent<BoxComponent>(-1.0f, -1.0f, 0.0f, 2.0f, 2.0f, 0.0f);
+	earth->addComponent<TextureComponent>(SO_SUS_pcx, TEXTURE_SIZE_128, Constants::TRIANGLE_QUAD_UVS,
+		sizeof(Constants::TRIANGLE_QUAD_UVS) / sizeof(float));
 
 	moon = new GameObject("Moon", 0.0f, 2.0f, 0.0f);
 	moon->addComponent<MeshComponent>(Constants::TRIANGLE_QUAD_VERTS, 
 		sizeof(Constants::TRIANGLE_QUAD_VERTS)/sizeof(float));
 	moon->addComponent<BoxComponent>(-1.0f, -1.0f, 0.0f, 2.0f, 2.0f, 0.0f);
 	moon->transform.setScale(0.5f, 0.5f, 0.5f);
+	moon->addComponent<ColorComponent>(Constants::TRIANGLE_QUAD_COLORS,
+		sizeof(Constants::TRIANGLE_QUAD_COLORS) / sizeof(uint8_t));
 
 	earth->addChild(moon);
-	earth->getComponent<MeshComponent>()->color.r = 0;
-
 	root->addChild(earth);
 }
 
@@ -71,11 +69,11 @@ int main() {
 	} pos;
 
 	while (1) {
-		Object::poly_counter = 0;  // Reset out current polygon count each tick.
 		GameObject::poly_counter = 0;  // Reset the amount of polygons drawn on each vblank.
 
 		printf("\033[2J");
-		printf("\n\nChris' 3D Renderer");
+		printf("\nChris' 3D DS Engine");
+		printf("\n-------------------");
 
 		scanKeys();
 		if (Input::getButton("left"))

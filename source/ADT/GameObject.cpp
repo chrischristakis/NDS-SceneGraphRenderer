@@ -2,6 +2,7 @@
 #include "../Components/MeshComponent.h"
 #include "../Components/BoxComponent.h"
 #include "../Constants.h"
+#include "../Components/RenderingSystem.h"
 #include <nds/arm9/videoGL.h>
 
 int id_counter = 0;
@@ -47,25 +48,8 @@ void GameObject::updateMV() {
 	// We don't want to scale our children, that's why this is down here after rendering the children.
 	glScalef(transform.scale.x, transform.scale.y, transform.scale.z);
 
-	// If we have a mesh component, we'll render it. If we have a bounding box, then use it to do clipping.
-	MeshComponent* mesh = getComponent<MeshComponent>();
-	bool bounded = true;
-	printf("\n[\"%s\", ID:%d] ", name.c_str(), ID);
-	if (mesh) {
-		if (poly_counter + mesh->polys <= Constants::MAX_POLYGONS) {
-			BoxComponent* boundingBox = getComponent<BoxComponent>();
-			if (boundingBox)
-				bounded = boundingBox->bounded();
-
-			if (bounded) {
-				poly_counter += mesh->polys;
-				mesh->render();
-				printf("rendered");
-			}
-			else
-				printf("unrendered");
-		}
-	}
+	// Let the rendering system handle rendering.
+	RenderingSystem::render(this);
 	
 	glPopMatrix(1); // Once we've rendered our object, we can dispose of our current matrix and move uo the hiearchy
 }

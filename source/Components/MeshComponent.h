@@ -16,7 +16,6 @@ struct MeshComponent : public Component {
 
 	//! Vertices must be in the form of [x, y, z, x, y, z, ... ]
 	void setVertices(const float arr[], size_t N);
-	void render();
 };
 
 #endif

@@ -5,9 +5,6 @@
 
 // Very bare bones. The whole point of this is basically for readability and a way to store generic class pointers
 // in our gameobject's components list.
-
-// I also am aware that in most entity component systems, by the books you shouldn't have logic in a component, only data.
-// But I kinda wanna try a hybrid model here to experiment where components have logic. Might be spaghetti, but we'll see.
 struct Component {
 	Component() = default;
 	virtual ~Component() {};
