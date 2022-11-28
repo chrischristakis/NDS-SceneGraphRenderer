@@ -4,6 +4,7 @@
 #include "BoxComponent.h"
 #include "ColorComponent.h"
 #include "TextureComponent.h"
+#include "AnimationComponent.h"
 #include "../Constants.h"
 #include <vector>
 #include <assert.h>
@@ -15,6 +16,11 @@ void drawTexturedMesh(MeshComponent* mesh, TextureComponent* tex);
 
 void RenderingSystem::render(GameObject* obj) {
 	if (!obj) return;
+
+	//Update our animation component
+	AnimationComponent* ac = obj->getComponent<AnimationComponent>();
+	if (ac)
+		ac->update();
 
 	MeshComponent* mesh = obj->getComponent<MeshComponent>();
 	bool bounded = true;

@@ -5,6 +5,11 @@ struct Vector3f {
 	float x, y, z;
 	Vector3f(float x, float y, float z): x(x), y(y), z(z) {}
 	Vector3f(): x(0), y(0), z(0) {}
+
+	friend Vector3f operator-(const Vector3f lhs, const Vector3f rhs);
+	friend Vector3f operator+(const Vector3f lhs, const Vector3f rhs);
+	friend Vector3f operator*(const Vector3f lhs, const Vector3f rhs); // dot product
+	friend Vector3f operator*(const Vector3f lhs, const float rhs); // magnitude adjustment
 };
 
 struct Transform {

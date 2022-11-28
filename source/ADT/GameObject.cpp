@@ -1,6 +1,7 @@
 #include "GameObject.h"
 #include "../Components/MeshComponent.h"
 #include "../Components/BoxComponent.h"
+#include "../Components/AnimationComponent.h"
 #include "../Constants.h"
 #include "../Components/RenderingSystem.h"
 #include <nds/arm9/videoGL.h>
@@ -37,16 +38,27 @@ void GameObject::updateMV() {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
+	// If we have a transform to animate, let's apply it.
+	AnimationComponent* ac = getComponent<AnimationComponent>();
+	Transform result(transform);  // Same as our normal transform if no animation is present.
+	if (ac) {
+		Transform &target = ac->animatedTransform;
+		result.scale = transform.scale * target.scale;
+		result.translate = transform.translate + target.translate;
+		result.angle = transform.angle + target.angle;
+		result.angleAxis = target.angleAxis;  // We just overwrite out angleaxis from the animation.
+	}
+	
 	// Apply the current transforms that will be applied to children (Scale doesnt apply to children)
-	glTranslatef(transform.translate.x, transform.translate.y, transform.translate.z);
-	glRotatef(transform.angle, transform.angleAxis.x, transform.angleAxis.y, transform.angleAxis.z);
+	glTranslatef(result.translate.x, result.translate.y, result.translate.z);
+	glRotatef(result.angle, result.angleAxis.x, result.angleAxis.y, result.angleAxis.z);
 
 	// Loop through children and render them, building on the parent transforms as we recurse down the tree.
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->updateMV();
 
 	// We don't want to scale our children, that's why this is down here after rendering the children.
-	glScalef(transform.scale.x, transform.scale.y, transform.scale.z);
+	glScalef(result.scale.x, result.scale.y, result.scale.z);
 
 	// Let the rendering system handle rendering.
 	RenderingSystem::render(this);

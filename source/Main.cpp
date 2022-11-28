@@ -9,6 +9,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/ColorComponent.h"
 #include "Components/TextureComponent.h"
+#include "Components/AnimationComponent.h"
 
 GameObject *root;
 GameObject *earth;
@@ -37,20 +38,38 @@ void initScene() {
 	root = new GameObject("root", 0, 0, 0);  // The origin of our world.
 
 	earth = new GameObject("Planet", 0.0f, 0, 0.0f);
-	earth->addComponent<MeshComponent>(Constants::TRIANGLE_QUAD_VERTS,
-		sizeof(Constants::TRIANGLE_QUAD_VERTS)/sizeof(float));
-	earth->addComponent<BoxComponent>(-1.0f, -1.0f, 0.0f, 2.0f, 2.0f, 0.0f);
-	earth->addComponent<TextureComponent>(SO_SUS_pcx, TEXTURE_SIZE_128, Constants::TRIANGLE_QUAD_UVS,
-		sizeof(Constants::TRIANGLE_QUAD_UVS) / sizeof(float));
+	earth->addComponent<MeshComponent>(Constants::TRIANGLE_CUBE_VERTS,
+		sizeof(Constants::TRIANGLE_CUBE_VERTS)/sizeof(float));
+	earth->addComponent<BoxComponent>(-1.0f, -1.0f, -1.0f, 2.0f, 2.0f, 2.0f);
+	earth->addComponent<AnimationComponent>();
+
+	// Handle transform animations
+	Transform *t1 = new Transform();
+	t1->setScale(0.5f, 1.0f, 1.0f);
+	t1->setAngle(90, 0.0f, 1.0f, 0.0f);
+	earth->getComponent<AnimationComponent>()->addKeyframe(50, t1);
+	Transform *t2 = new Transform();
+	t2->setScale(1.0f, 0.5f, 1.0f);
+	t2->setAngle(180, 1.0f, 0.0f, 0.0f);
+	earth->getComponent<AnimationComponent>()->addKeyframe(100, t2);
+	Transform *t3 = new Transform();
+	t3->setScale(1.0f, 1.0f, 0.5f);
+	t3->setAngle(270, 0.0f, 0.0f, 1.0f);
+	earth->getComponent<AnimationComponent>()->addKeyframe(150, t3);
+	Transform *t4 = new Transform();
+	t4->setScale(1.0f, 1.0f, 1.0f);
+	t4->setAngle(360, 0.0f, 1.0f, 0.0f);
+	earth->getComponent<AnimationComponent>()->addKeyframe(200, t4);
+
 
 	moon = new GameObject("Moon", 0.0f, 2.0f, 0.0f);
 	moon->addComponent<MeshComponent>(Constants::TRIANGLE_QUAD_VERTS, 
 		sizeof(Constants::TRIANGLE_QUAD_VERTS)/sizeof(float));
 	moon->addComponent<BoxComponent>(-1.0f, -1.0f, 0.0f, 2.0f, 2.0f, 0.0f);
 	moon->transform.setScale(0.5f, 0.5f, 0.5f);
-	moon->addComponent<ColorComponent>(Constants::TRIANGLE_QUAD_COLORS,
-		sizeof(Constants::TRIANGLE_QUAD_COLORS) / sizeof(uint8_t));
-
+	moon->addComponent<TextureComponent>(SO_SUS_pcx, TEXTURE_SIZE_128, Constants::TRIANGLE_QUAD_UVS,
+		sizeof(Constants::TRIANGLE_QUAD_UVS) / sizeof(float));
+	
 	earth->addChild(moon);
 	root->addChild(earth);
 }
@@ -93,8 +112,9 @@ int main() {
 		x = 2.5 * cosLerp(angle*300 % 32767);
 		y = 2.5 * sinLerp(angle*300 % 32767);
 
-		earth->transform.setAngle(angle++, 0.0f, 1.0f, 0.0f);
+		//earth->transform.setAngle(angle++, 0.0f, 1.0f, 0.0f);
 		moon->transform.setTranslate(fixedToFloat(x, 12), fixedToFloat(y, 12), 0);
+		angle++;
 
 		//Camera transform
 		root->transform.setTranslate(pos.x, pos.y, pos.z);
@@ -102,8 +122,7 @@ int main() {
 		// Render scene
 		root->updateMV();
 
-		printf("\n\nMax polygons: %d", Constants::MAX_POLYGONS);
-		printf("\nRendered polygons: %d", GameObject::poly_counter);
+		printf("\n\nMAX: %d, RENDERED: %d", Constants::MAX_POLYGONS, GameObject::poly_counter);
 
 		glFlush(0);
 		swiWaitForVBlank();

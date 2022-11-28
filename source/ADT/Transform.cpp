@@ -1,5 +1,21 @@
 #include "Transform.h"
 
+Vector3f operator+(const Vector3f lhs, const Vector3f rhs) {
+	return Vector3f(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
+}
+
+Vector3f operator-(const Vector3f lhs, const Vector3f rhs) {
+	return Vector3f(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
+}
+
+Vector3f operator*(const Vector3f lhs, const Vector3f rhs) {
+	return Vector3f(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z);
+}
+
+Vector3f operator*(const Vector3f lhs, const float scalar) {
+	return Vector3f(lhs.x * scalar, lhs.y * scalar, lhs.z * scalar);
+}
+
 void Transform::setAngle(float angle, float x, float y, float z) {
 	this->angle = angle;
 	angleAxis.x = x;
