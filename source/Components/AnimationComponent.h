@@ -13,7 +13,6 @@ class AnimationComponent : public Component {
 public:
 	Transform animatedTransform;  // The fruit of our labours, use this to ainimate the resulting transform.
 
-	// The choice was to use "absolute' transform animations, meaning that these aren't relative.
 	AnimationComponent();
 	~AnimationComponent();
 	void addKeyframe(int keyframe, Transform* transform);

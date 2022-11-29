@@ -10,6 +10,8 @@ struct Vector3f {
 	friend Vector3f operator+(const Vector3f lhs, const Vector3f rhs);
 	friend Vector3f operator*(const Vector3f lhs, const Vector3f rhs); // dot product
 	friend Vector3f operator*(const Vector3f lhs, const float rhs); // magnitude adjustment
+
+	static Vector3f normalize(const Vector3f vec);
 };
 
 struct Transform {

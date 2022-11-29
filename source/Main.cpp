@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "Constants.h"
 #include "Input/Input.h"
+#include "Camera.h"
 
 #include "SO_SUS_pcx.h"
 #include "ADT/GameObject.h"
@@ -14,6 +15,8 @@
 GameObject *root;
 GameObject *earth;
 GameObject *moon;
+
+Camera camera;
 
 void init() {
 	consoleDemoInit();
@@ -31,6 +34,10 @@ void init() {
 	gluPerspective(90, 256.0 / 192.0, 0.1, 40);	// Our perspective projection, using an aspect ratio of our screen size
 
 	Input::init();
+
+	//Change our virtual inputs to our uses
+	Input::swapButtonName("fire", "forward");
+	Input::swapButtonName("jump", "backward");
 }
 
 // Our scenegraph goes here.
@@ -46,19 +53,19 @@ void initScene() {
 	// Handle transform animations
 	Transform *t1 = new Transform();
 	t1->setScale(0.5f, 1.0f, 1.0f);
-	t1->setAngle(90, 0.0f, 1.0f, 0.0f);
+	//t1->setAngle(90, 0.0f, 1.0f, 0.0f);
 	earth->getComponent<AnimationComponent>()->addKeyframe(50, t1);
 	Transform *t2 = new Transform();
 	t2->setScale(1.0f, 0.5f, 1.0f);
-	t2->setAngle(180, 1.0f, 0.0f, 0.0f);
+	//t2->setAngle(180, 0.0f, 1.0f, 0.0f);
 	earth->getComponent<AnimationComponent>()->addKeyframe(100, t2);
 	Transform *t3 = new Transform();
 	t3->setScale(1.0f, 1.0f, 0.5f);
-	t3->setAngle(270, 0.0f, 0.0f, 1.0f);
+	//t3->setAngle(270, 0.0f, 1.0f, 0.0f);
 	earth->getComponent<AnimationComponent>()->addKeyframe(150, t3);
 	Transform *t4 = new Transform();
 	t4->setScale(1.0f, 1.0f, 1.0f);
-	t4->setAngle(360, 0.0f, 1.0f, 0.0f);
+	//t4->setAngle(360, 0.0f, 1.0f, 0.0f);
 	earth->getComponent<AnimationComponent>()->addKeyframe(200, t4);
 
 
@@ -80,12 +87,6 @@ int main() {
 	
 	int angle = 0;
 	s16 x = 0, y = 0;
-	
-	struct CamPos {
-		float x = 0;
-		float y = 0;
-		float z = -3.5f;
-	} pos;
 
 	while (1) {
 		GameObject::poly_counter = 0;  // Reset the amount of polygons drawn on each vblank.
@@ -95,29 +96,18 @@ int main() {
 		printf("\n-------------------");
 
 		scanKeys();
-		if (Input::getButton("left"))
-			pos.x += 0.05f;
-		if (Input::getButton("right"))
-			pos.x -= 0.05f;
-		if (Input::getButton("up"))
-			pos.z += 0.05f;
-		if (Input::getButton("down"))
-			pos.z -= 0.05f;
-		if (Input::getButton("fire"))
-			pos.y += 0.05f;
-		if (Input::getButton("jump"))
-			pos.y -= 0.05f;
-		
+		camera.updateInput();
+
+		// Always gotta call this before our gameobject transforms
+		camera.updateCamera();
+
 		// Orbiting moon, still in fixed point 4.12
 		x = 2.5 * cosLerp(angle*300 % 32767);
 		y = 2.5 * sinLerp(angle*300 % 32767);
 
-		//earth->transform.setAngle(angle++, 0.0f, 1.0f, 0.0f);
+		//earth->transform.setAngle(angle, 0.0f, 1.0f, 0.0f);
 		moon->transform.setTranslate(fixedToFloat(x, 12), fixedToFloat(y, 12), 0);
 		angle++;
-
-		//Camera transform
-		root->transform.setTranslate(pos.x, pos.y, pos.z);
 
 		// Render scene
 		root->updateMV();
