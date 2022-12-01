@@ -12,6 +12,7 @@ struct Vector3f {
 	friend Vector3f operator*(const Vector3f lhs, const float rhs); // magnitude adjustment
 
 	static Vector3f normalize(const Vector3f vec);
+	static float distance(const Vector3f vec1, const Vector3f vec2);
 };
 
 struct Transform {

@@ -9,10 +9,12 @@
 #include <vector>
 #include <assert.h>
 
+Camera* RenderingSystem::camera = new Camera(0, 0, 5.0f);
+
 // Hoisting time
-void drawMesh(MeshComponent* mesh);
-void drawColoredMesh(MeshComponent* mesh, ColorComponent* colorComponent);
-void drawTexturedMesh(MeshComponent* mesh, TextureComponent* tex);
+void drawMesh(Mesh* mesh);
+void drawColoredMesh(Mesh* mesh, Color* colorComponent);
+void drawTexturedMesh(Mesh* mesh, Texture* tex);
 
 void RenderingSystem::render(GameObject* obj) {
 	if (!obj) return;
@@ -22,10 +24,28 @@ void RenderingSystem::render(GameObject* obj) {
 	if (ac)
 		ac->update();
 
-	MeshComponent* mesh = obj->getComponent<MeshComponent>();
+	MeshComponent* meshComponent = obj->getComponent<MeshComponent>();
 	bool bounded = true;
-	printf("\n[\"%s\", ID:%d] ", obj->name.c_str(), obj->ID);
-	if (mesh) {
+	printf("\n[\"%s\"]: ", obj->name.c_str());
+
+	// Only render if we have a mesh component to render
+	if (meshComponent) {
+		float cameraDistanceToObject = Vector3f::distance(camera->position, obj->transform.translate);
+		
+		// One big downside to this LOD implementation is that we have to manually (as the user) make sure that 
+		// if this is a texutred or colored mesh, the keys (distances) in the texture/color and mesh match. There's ways around
+		// this obviously, and with a little bit of infrastructure tuning this wouldn't be an issue. But because I'm
+		// working on this at the tail end of the assignment, it is what it is.
+		float lodIndex = 0;
+
+		// If we're far enough to use a lower LOD mesh, go with that.
+		for (auto it = meshComponent->meshes.begin(); it != meshComponent->meshes.end(); it++) {
+			if (cameraDistanceToObject >= it->first)  // If our camera's distance exceeds the furthest LOD mesh, use it! We can do this since maps are ordered on their key (distance)
+				lodIndex = it->first;
+		}
+
+		Mesh* mesh = meshComponent->meshes[lodIndex];  // Use the mesh with our associated distance.
+
 		if (GameObject::poly_counter + mesh->polys <= Constants::MAX_POLYGONS) {
 			BoxComponent* boundingBox = obj->getComponent<BoxComponent>();
 			if (boundingBox)
@@ -37,10 +57,17 @@ void RenderingSystem::render(GameObject* obj) {
 				ColorComponent* colorComponent = obj->getComponent<ColorComponent>();
 				TextureComponent* texComponent = obj->getComponent<TextureComponent>();
 				if (texComponent) { // Texture components take priority should some silly person assign both color and texture.
-					drawTexturedMesh(mesh, texComponent);
+
+					// Use our mesh LOD to index which texture to use. This very fickle line of code is the crux of the 
+					// very unintuitive solution I talked about above.
+					Texture* tex = texComponent->textures[lodIndex];
+
+					drawTexturedMesh(mesh, tex);
 				}
-				else if (colorComponent)
-					drawColoredMesh(mesh, colorComponent);
+				else if (colorComponent) {
+					Color* col = colorComponent->colors[lodIndex];
+					drawColoredMesh(mesh, col);
+				}
 				else
 					drawMesh(mesh);
 
@@ -52,8 +79,8 @@ void RenderingSystem::render(GameObject* obj) {
 	}
 }
 
-void drawTexturedMesh(MeshComponent* mesh, TextureComponent* tex) {
-	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_FORMAT_LIGHT1);
+void drawTexturedMesh(Mesh* mesh, Texture* tex) {
+	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_BACK | POLY_FORMAT_LIGHT1);
 
 	auto &vertices = mesh->vertices;
 	auto &uvs = tex->uvs;
@@ -74,10 +101,10 @@ void drawTexturedMesh(MeshComponent* mesh, TextureComponent* tex) {
 
 }
 
-void drawColoredMesh(MeshComponent* mesh, ColorComponent* colorComponent) {
-	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_FORMAT_LIGHT0);
+void drawColoredMesh(Mesh* mesh, Color* col) {
+	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_BACK | POLY_FORMAT_LIGHT0);
 	auto &vertices = mesh->vertices;
-	auto &vertColors = colorComponent->vertColors;
+	auto &vertColors = col->vertColors;
 
 	// 3 colors per vert, 3 positions per vert, so our sizes must match for a color to be properly applied.
 	assert(vertColors.size() == vertices.size());
@@ -91,8 +118,8 @@ void drawColoredMesh(MeshComponent* mesh, ColorComponent* colorComponent) {
 }
 
 // Basic mesh render of a uniform colour.
-void drawMesh(MeshComponent* mesh) {
-	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_FORMAT_LIGHT0);
+void drawMesh(Mesh* mesh) {
+	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_BACK | POLY_FORMAT_LIGHT0);
 	auto &vertices = mesh->vertices;
 
 	glBegin(GL_TRIANGLES);

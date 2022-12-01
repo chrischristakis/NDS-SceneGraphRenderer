@@ -10,14 +10,22 @@
 
 class GameObject {
 private:
-	std::map<std::string, Component*> components;  //An internal DS, no need to expose it.
+	// Will hold our components for our entity component system. The key here is that every object doesn't need every component,
+	// so it's flexible and seperates concerns.
+	std::map<std::string, Component*> components;
 public: 
 
 	int ID;  // A unique ID for our GameObject.
 	std::string name; // Non-unique identifier. Mostly for debugging.
-	std::vector<GameObject*> children;
+
+	// Scene-graph structure.
+	std::vector<GameObject*> children; 
 	GameObject* parent;
-	Transform transform;
+
+	// I chose to keep transform in the gameobject instead of as a component. This is because although not every object is renderable,
+	// every object will likely need to be somewhere in the world, using it's translation. However, it is entirely possible to 
+	// seperate this into a component. Also makes our scenegraph structure easier to deal with.
+	Transform transform;  
 
 	static int poly_counter; // Used to count how many polygons are currently drawn in this vblank.
 
@@ -29,7 +37,7 @@ public:
 
 	void updateMV();
 
-	//! We must implement templates in our .h, c++ doesn't let us put these definition in the cpp file.
+	//! We must implement templates in our .h, c++ doesn't let us put these definitions in the cpp file.
 
 	// Add a component (Note: You can only have one of each type of component in a GameObject)
 	template<typename T, typename ...TArgs>

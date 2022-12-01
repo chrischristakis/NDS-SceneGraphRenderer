@@ -4,18 +4,19 @@
 #include "ADT/Transform.h"
 #include "Input/Input.h"
 
-// C++ is a lawless land. I chose to put implementation details in the header this time because I am a lawless person.
+// C++ is a lawless land. I chose to put implementation details in the header this time because I am a lawless person. 
 
 class Camera {
 private:
 	float yaw;
 	Vector3f camFront;  // The actual direction our camera is looking at
-	Vector3f position;  // Our camera's position in the world
-	float camVelocity = 0.05f;
+	float camVelocity = 0.25f;
 public:
-	Camera() {
+	Vector3f position;
+
+	Camera(float x, float y, float z) {
 		yaw = -90;
-		position.z = 5.0f;
+		position = Vector3f(x, y, z);
 	}
 
 	void updateInput() {

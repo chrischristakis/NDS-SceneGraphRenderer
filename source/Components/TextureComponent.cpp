@@ -1,5 +1,6 @@
 #include "TextureComponent.h"
-TextureComponent::TextureComponent(const uint8_t* pcx, GL_TEXTURE_SIZE_ENUM img_size, const float uvs[], size_t N) {
+
+Texture::Texture(const uint8_t* pcx, GL_TEXTURE_SIZE_ENUM img_size, const float uvs[], size_t N) {
 	this->uvs.assign(uvs, uvs + N);
 
 	sImage pcx_temp;  // Use this to store pcx data temporarily until we generate a texture
@@ -12,4 +13,19 @@ TextureComponent::TextureComponent(const uint8_t* pcx, GL_TEXTURE_SIZE_ENUM img_
 	glBindTexture(GL_TEXTURE_2D, 0);  // If we don't unbind, everything will be dark.
 
 	imageDestroy(&pcx_temp);
+}
+
+TextureComponent::TextureComponent(const uint8_t* pcx, GL_TEXTURE_SIZE_ENUM img_size, const float uvs[], size_t N) {
+	textures.insert({ 0, new Texture(pcx, img_size, uvs, N) });
+}
+
+void TextureComponent::addLODTexture(float distance, const uint8_t* pcx,
+	GL_TEXTURE_SIZE_ENUM img_size, const float uvs[], size_t N) {
+	textures.insert({ distance, new Texture(pcx, img_size, uvs, N) });
+}
+
+TextureComponent::~TextureComponent() {
+	for (auto it = textures.begin(); it != textures.end(); it++)
+		delete it->second;
+	textures.clear();
 }

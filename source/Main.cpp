@@ -1,22 +1,23 @@
 #include <nds.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "Constants.h"
 #include "Input/Input.h"
 #include "Camera.h"
 
 #include "SO_SUS_pcx.h"
+#include "texture_pcx.h"
 #include "ADT/GameObject.h"
 #include "Components/MeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/ColorComponent.h"
 #include "Components/TextureComponent.h"
 #include "Components/AnimationComponent.h"
+#include "Components/RenderingSystem.h"
 
 GameObject *root;
 GameObject *earth;
 GameObject *moon;
-
-Camera camera;
 
 void init() {
 	consoleDemoInit();
@@ -47,8 +48,15 @@ void initScene() {
 	earth = new GameObject("Planet", 0.0f, 0, 0.0f);
 	earth->addComponent<MeshComponent>(Constants::TRIANGLE_CUBE_VERTS,
 		sizeof(Constants::TRIANGLE_CUBE_VERTS)/sizeof(float));
+	earth->addComponent<TextureComponent>(SO_SUS_pcx, TEXTURE_SIZE_128, Constants::TRIANGLE_CUBE_UVS,
+		sizeof(Constants::TRIANGLE_CUBE_UVS) / sizeof(float));
 	earth->addComponent<BoxComponent>(-1.0f, -1.0f, -1.0f, 2.0f, 2.0f, 2.0f);
 	earth->addComponent<AnimationComponent>();
+
+	earth->getComponent<MeshComponent>()->addLODMesh(10.0f, Constants::TRIANGLE_PYRAMID_VERTS,
+		sizeof(Constants::TRIANGLE_PYRAMID_VERTS) / sizeof(float));
+	earth->getComponent<TextureComponent>()->addLODTexture(10.0f, texture_pcx, TEXTURE_SIZE_128,
+		Constants::TRIANGLE_PYRAMID_UVS, sizeof(Constants::TRIANGLE_PYRAMID_UVS) / sizeof(float));
 
 	// Handle transform animations
 	Transform *t1 = new Transform();
@@ -88,6 +96,8 @@ int main() {
 	int angle = 0;
 	s16 x = 0, y = 0;
 
+	Camera* &camera = RenderingSystem::camera;
+
 	while (1) {
 		GameObject::poly_counter = 0;  // Reset the amount of polygons drawn on each vblank.
 
@@ -96,10 +106,10 @@ int main() {
 		printf("\n-------------------");
 
 		scanKeys();
-		camera.updateInput();
+		camera->updateInput();
 
 		// Always gotta call this before our gameobject transforms
-		camera.updateCamera();
+		camera->updateCamera();
 
 		// Orbiting moon, still in fixed point 4.12
 		x = 2.5 * cosLerp(angle*300 % 32767);
@@ -112,7 +122,8 @@ int main() {
 		// Render scene
 		root->updateMV();
 
-		printf("\n\nMAX: %d, RENDERED: %d", Constants::MAX_POLYGONS, GameObject::poly_counter);
+		printf("\nMAX: %d, RENDERED: %d", Constants::MAX_POLYGONS, GameObject::poly_counter);
+		printf("\n\nCamera pos: %.4f, %.4f, %.4f", camera->position.x, camera->position.y, camera->position.z);
 
 		glFlush(0);
 		swiWaitForVBlank();
