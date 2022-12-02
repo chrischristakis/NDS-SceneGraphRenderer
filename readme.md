@@ -4,6 +4,7 @@
 ## About
 
 This is a functional scenegraph renderer made in C++ using LIBNDS and OpenGL made to run on the DeSmuME DS emulator
+
 This renderer includes:
 - Entity component system
 - Scene graph tree where parent transforms are applied to children
@@ -20,7 +21,7 @@ This renderer includes:
 3) Run <code>make</code> at the project's root
 4) You should be presented with a <code>.nds</code> file.
 
-## How do I run the ROM? (Thanks for including it in the project course Chris, you're such a nice guy!)
+## How do I run the ROM? (Thanks for including it in the project source Chris, you're such a nice guy!)
 1) Open DeSmuME (Made for v0.9.13)
 2) Navigate to <code>File -> Open ROM...</code> and select the <code>.nds</code> file wherever it is on your machine
 3) Enjoy!
