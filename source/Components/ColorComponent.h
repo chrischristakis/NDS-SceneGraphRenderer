@@ -5,6 +5,7 @@
 #include <map>
 #include <nds.h>
 
+// This component allows us to map colors to a mesh instead of UVs.
 struct Color {
 	// 3 colors components per vertex (r,g,b), should have same size as the mesh vertex array.
 	// Using the arbitrary choice of storing colors from 0-255 (byte) instead of as a float.

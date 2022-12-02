@@ -5,8 +5,10 @@
 #include "Input/Input.h"
 #include "Camera.h"
 
-#include "SO_SUS_pcx.h"
+#include "SUS_pcx.h"
 #include "texture_pcx.h"
+#include "highres_pcx.h"
+#include "lowres_pcx.h"
 #include "ADT/GameObject.h"
 #include "Components/MeshComponent.h"
 #include "Components/BoxComponent.h"
@@ -16,8 +18,9 @@
 #include "Components/RenderingSystem.h"
 
 GameObject *root;
-GameObject *earth;
-GameObject *moon;
+GameObject *closeObject;
+GameObject *orbitingObject;
+GameObject *farObject;
 
 void init() {
 	consoleDemoInit();
@@ -25,7 +28,7 @@ void init() {
 	vramSetBankA(VRAM_A_TEXTURE);
 	
 	glInit();  // Context time
-	glClearColor(0, 2, 3, 31);
+	glClearColor(0, 2, 5, 31);
 	glViewport(0, 0, 255, 191);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
@@ -45,48 +48,81 @@ void init() {
 void initScene() {
 	root = new GameObject("root", 0, 0, 0);  // The origin of our world.
 
-	earth = new GameObject("Planet", 0.0f, 0, 0.0f);
-	earth->addComponent<MeshComponent>(Constants::TRIANGLE_CUBE_VERTS,
-		sizeof(Constants::TRIANGLE_CUBE_VERTS)/sizeof(float));
-	earth->addComponent<TextureComponent>(SO_SUS_pcx, TEXTURE_SIZE_128, Constants::TRIANGLE_CUBE_UVS,
-		sizeof(Constants::TRIANGLE_CUBE_UVS) / sizeof(float));
-	earth->addComponent<BoxComponent>(-1.0f, -1.0f, -1.0f, 2.0f, 2.0f, 2.0f);
-	earth->addComponent<AnimationComponent>();
+	closeObject = new GameObject("CloseObj", 0.0f, 0, 0.0f);
+	// Initially an empty object without any components! Lets add some using our ecs down below.
 
-	earth->getComponent<MeshComponent>()->addLODMesh(10.0f, Constants::TRIANGLE_PYRAMID_VERTS,
+	closeObject->addComponent<MeshComponent>(Constants::TRIANGLE_CUBE_VERTS,
+		sizeof(Constants::TRIANGLE_CUBE_VERTS)/sizeof(float));
+	closeObject->addComponent<TextureComponent>(SUS_pcx, TEXTURE_SIZE_128, Constants::TRIANGLE_CUBE_UVS,
+		sizeof(Constants::TRIANGLE_CUBE_UVS) / sizeof(float));
+	closeObject->addComponent<BoxComponent>(-1.0f, -1.0f, -1.0f, 2.0f, 2.0f, 2.0f);
+	closeObject->addComponent<AnimationComponent>();
+
+	// LOD loading happens here.
+	closeObject->getComponent<MeshComponent>()->addLODMesh(10.0f, Constants::TRIANGLE_PYRAMID_VERTS,
 		sizeof(Constants::TRIANGLE_PYRAMID_VERTS) / sizeof(float));
-	earth->getComponent<TextureComponent>()->addLODTexture(10.0f, texture_pcx, TEXTURE_SIZE_128,
+	closeObject->getComponent<TextureComponent>()->addLODTexture(10.0f, lowres_pcx, TEXTURE_SIZE_32,
 		Constants::TRIANGLE_PYRAMID_UVS, sizeof(Constants::TRIANGLE_PYRAMID_UVS) / sizeof(float));
 
-	// Handle transform animations
+	// Handle transform animations for our gameobject.
 	Transform *t1 = new Transform();
 	t1->setScale(0.5f, 1.0f, 1.0f);
-	//t1->setAngle(90, 0.0f, 1.0f, 0.0f);
-	earth->getComponent<AnimationComponent>()->addKeyframe(50, t1);
+	closeObject->getComponent<AnimationComponent>()->addKeyframe(50, t1);
 	Transform *t2 = new Transform();
 	t2->setScale(1.0f, 0.5f, 1.0f);
-	//t2->setAngle(180, 0.0f, 1.0f, 0.0f);
-	earth->getComponent<AnimationComponent>()->addKeyframe(100, t2);
+	closeObject->getComponent<AnimationComponent>()->addKeyframe(100, t2);
 	Transform *t3 = new Transform();
 	t3->setScale(1.0f, 1.0f, 0.5f);
-	//t3->setAngle(270, 0.0f, 1.0f, 0.0f);
-	earth->getComponent<AnimationComponent>()->addKeyframe(150, t3);
+	closeObject->getComponent<AnimationComponent>()->addKeyframe(150, t3);
 	Transform *t4 = new Transform();
 	t4->setScale(1.0f, 1.0f, 1.0f);
-	//t4->setAngle(360, 0.0f, 1.0f, 0.0f);
-	earth->getComponent<AnimationComponent>()->addKeyframe(200, t4);
+	closeObject->getComponent<AnimationComponent>()->addKeyframe(200, t4);
 
-
-	moon = new GameObject("Moon", 0.0f, 2.0f, 0.0f);
-	moon->addComponent<MeshComponent>(Constants::TRIANGLE_QUAD_VERTS, 
+	// Init orbiting object
+	orbitingObject = new GameObject("Orbiter", 0.0f, 2.0f, 0.0f);
+	orbitingObject->addComponent<MeshComponent>(Constants::TRIANGLE_QUAD_VERTS,
 		sizeof(Constants::TRIANGLE_QUAD_VERTS)/sizeof(float));
-	moon->addComponent<BoxComponent>(-1.0f, -1.0f, 0.0f, 2.0f, 2.0f, 0.0f);
-	moon->transform.setScale(0.5f, 0.5f, 0.5f);
-	moon->addComponent<TextureComponent>(SO_SUS_pcx, TEXTURE_SIZE_128, Constants::TRIANGLE_QUAD_UVS,
+	orbitingObject->addComponent<BoxComponent>(-1.0f, -1.0f, 0.0f, 2.0f, 2.0f, 0.0f);
+	orbitingObject->transform.setScale(0.5f, 0.5f, 0.5f);
+	orbitingObject->addComponent<TextureComponent>(SUS_pcx, TEXTURE_SIZE_128, Constants::TRIANGLE_QUAD_UVS,
 		sizeof(Constants::TRIANGLE_QUAD_UVS) / sizeof(float));
+
+	orbitingObject->getComponent<MeshComponent>()->addLODMesh(10.0f, Constants::TRIANGLE_QUAD_VERTS,
+		sizeof(Constants::TRIANGLE_QUAD_VERTS) / sizeof(float));
+	orbitingObject->getComponent<TextureComponent>()->addLODTexture(10.0f, lowres_pcx, TEXTURE_SIZE_32,
+		Constants::TRIANGLE_QUAD_UVS, sizeof(Constants::TRIANGLE_QUAD_UVS) / sizeof(float));
 	
-	earth->addChild(moon);
-	root->addChild(earth);
+	closeObject->addChild(orbitingObject);
+
+	// Init far object
+	farObject = new GameObject("FarObj", 5.0f, 0.0f, -20.0f);
+	farObject->addComponent<MeshComponent>(Constants::TRIANGLE_CUBE_VERTS,
+		sizeof(Constants::TRIANGLE_CUBE_VERTS) / sizeof(float));
+	farObject->addComponent<BoxComponent>(-1.0f, -1.0f, 0.0f, 2.0f, 2.0f, 0.0f);
+	farObject->addComponent<TextureComponent>(SUS_pcx, TEXTURE_SIZE_128, Constants::TRIANGLE_CUBE_UVS,
+		sizeof(Constants::TRIANGLE_CUBE_UVS) / sizeof(float));
+
+	farObject->getComponent<MeshComponent>()->addLODMesh(10.0f, Constants::TRIANGLE_CUBE_VERTS,
+		sizeof(Constants::TRIANGLE_CUBE_VERTS) / sizeof(float));
+	farObject->getComponent<TextureComponent>()->addLODTexture(10.0f, lowres_pcx, TEXTURE_SIZE_32,
+		Constants::TRIANGLE_CUBE_UVS, sizeof(Constants::TRIANGLE_CUBE_UVS) / sizeof(float));
+
+	farObject->addComponent<AnimationComponent>();
+	Transform *t5 = new Transform();
+	t5->setAngle(90, 0.0f, 1.0f, 0.0f);
+	farObject->getComponent<AnimationComponent>()->addKeyframe(200, t5);
+	Transform *t6 = new Transform();
+	t6->setAngle(180, 1.0f, 0.0f, 0.0f);
+	farObject->getComponent<AnimationComponent>()->addKeyframe(400, t6);
+	Transform *t7 = new Transform();
+	t7->setAngle(270, 0.0f, 0.0f, 1.0f);
+	farObject->getComponent<AnimationComponent>()->addKeyframe(600, t7);
+	Transform *t8 = new Transform();
+	t8->setAngle(360, 0.0f, 1.0f, 0.0f);
+	farObject->getComponent<AnimationComponent>()->addKeyframe(800, t8);
+
+	root->addChild(closeObject);
+	root->addChild(farObject);
 }
 
 int main() {
@@ -108,21 +144,20 @@ int main() {
 		scanKeys();
 		camera->updateInput();
 
-		// Always gotta call this before our gameobject transforms
+		// Always gotta call this before our gameobject transforms in order to update the view matrix.
 		camera->updateCamera();
 
-		// Orbiting moon, still in fixed point 4.12
+		// Just used to show that we can alter transforms even if we're not using an animation.
 		x = 2.5 * cosLerp(angle*300 % 32767);
 		y = 2.5 * sinLerp(angle*300 % 32767);
 
-		//earth->transform.setAngle(angle, 0.0f, 1.0f, 0.0f);
-		moon->transform.setTranslate(fixedToFloat(x, 12), fixedToFloat(y, 12), 0);
+		orbitingObject->transform.setTranslate(fixedToFloat(x, 12), fixedToFloat(y, 12), 0);
 		angle++;
 
 		// Render scene
 		root->updateMV();
 
-		printf("\nMAX: %d, RENDERED: %d", Constants::MAX_POLYGONS, GameObject::poly_counter);
+		printf("\n\nMAX: %d, RENDERED: %d", Constants::MAX_POLYGONS, GameObject::poly_counter);
 		printf("\n\nCamera pos: %.4f, %.4f, %.4f", camera->position.x, camera->position.y, camera->position.z);
 
 		glFlush(0);

@@ -26,7 +26,7 @@ void RenderingSystem::render(GameObject* obj) {
 
 	MeshComponent* meshComponent = obj->getComponent<MeshComponent>();
 	bool bounded = true;
-	printf("\n[\"%s\"]: ", obj->name.c_str());
+	printf("\n\"%s\": ", obj->name.c_str());
 
 	// Only render if we have a mesh component to render
 	if (meshComponent) {
@@ -44,9 +44,13 @@ void RenderingSystem::render(GameObject* obj) {
 				lodIndex = it->first;
 		}
 
+		printf("LOD: %.3f ", lodIndex);
+
 		Mesh* mesh = meshComponent->meshes[lodIndex];  // Use the mesh with our associated distance.
 
 		if (GameObject::poly_counter + mesh->polys <= Constants::MAX_POLYGONS) {
+
+			// Frustum culling
 			BoxComponent* boundingBox = obj->getComponent<BoxComponent>();
 			if (boundingBox)
 				bounded = boundingBox->bounded();
@@ -73,14 +77,12 @@ void RenderingSystem::render(GameObject* obj) {
 
 				printf("rendered");
 			}
-			else
-				printf("unrendered");
 		}
 	}
 }
 
 void drawTexturedMesh(Mesh* mesh, Texture* tex) {
-	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_BACK | POLY_FORMAT_LIGHT1);
+	glPolyFmt(POLY_ALPHA(31) | mesh->culling | POLY_FORMAT_LIGHT1);
 
 	auto &vertices = mesh->vertices;
 	auto &uvs = tex->uvs;
@@ -102,7 +104,7 @@ void drawTexturedMesh(Mesh* mesh, Texture* tex) {
 }
 
 void drawColoredMesh(Mesh* mesh, Color* col) {
-	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_BACK | POLY_FORMAT_LIGHT0);
+	glPolyFmt(POLY_ALPHA(31) | mesh->culling | POLY_FORMAT_LIGHT0);
 	auto &vertices = mesh->vertices;
 	auto &vertColors = col->vertColors;
 
@@ -119,7 +121,7 @@ void drawColoredMesh(Mesh* mesh, Color* col) {
 
 // Basic mesh render of a uniform colour.
 void drawMesh(Mesh* mesh) {
-	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_BACK | POLY_FORMAT_LIGHT0);
+	glPolyFmt(POLY_ALPHA(31) | mesh->culling | POLY_FORMAT_LIGHT0);
 	auto &vertices = mesh->vertices;
 
 	glBegin(GL_TRIANGLES);

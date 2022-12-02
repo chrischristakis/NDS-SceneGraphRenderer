@@ -6,6 +6,7 @@
 // The first keyframe should be the object's transform itself.
 AnimationComponent::AnimationComponent() {
 	addKeyframe(0, new Transform());
+	frameCounter = 0;
 	currentFrame = 0;
 	targetFrame = std::numeric_limits<int>::max(); // No target frame yet, so set to biggest int.
 }
@@ -33,10 +34,9 @@ int AnimationComponent::getNextTargetFrame() {
 	return 0;  // Default to first keyframe if we dont find another frame greater than current target frame.
 }
 
-bool hit = false;
 void AnimationComponent::update() {
 	// If there's 0 frames, we don't really have an animation, so skip.
-	if (animations.size() < 2) return;
+	if (animations.size() < 1) return;
 
 	//Now let us calculate our current transform in the animation based off the two keyframes we're inbetween.
 	// DeltaTransform holds the difference between our two frames.
@@ -44,6 +44,7 @@ void AnimationComponent::update() {
 	Transform &targetTransform = *animations[targetFrame];
 	Transform deltaTransform;
 
+	// How we interpolate between frames, just calculate the distance between two frames and multipy by the progress to the next frame.
 	float lerp = frameCounter / static_cast<float>(targetFrame - currentFrame); // value from [0-1]
 
 	deltaTransform.translate = (targetTransform.translate - currentTransform.translate) * lerp;
@@ -51,6 +52,7 @@ void AnimationComponent::update() {
 	deltaTransform.angle = (targetTransform.angle - currentTransform.angle) * lerp;
 	deltaTransform.angleAxis = (targetTransform.angleAxis - currentTransform.angleAxis) * lerp;
 
+	// We must add the progress of our lerped animation to the previous keyframe, which will bring us to our target keyframe.
 	animatedTransform.translate = currentTransform.translate + deltaTransform.translate;
 	animatedTransform.scale = currentTransform.scale + deltaTransform.scale;
 	animatedTransform.angle = currentTransform.angle + deltaTransform.angle;

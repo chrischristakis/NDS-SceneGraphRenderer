@@ -9,7 +9,8 @@
 struct Mesh {
 	std::vector<float> vertices;
 	int polys;  // How many polygons our mesh has.
-	Color3b color;  // Our mesh's color should we have no texture.
+	Color3b color;  // Our mesh's color should we have no texture
+	GL_POLY_FORMAT_ENUM culling = POLY_CULL_BACK;
 
 	Mesh(const float arr[], size_t N);
 
